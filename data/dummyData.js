@@ -1,0 +1,37 @@
+import Measurement from '../models/measurement';
+
+export const measurements = [
+    new Measurement("1", 30, 25, 10, '12:00'),
+    new Measurement("2", 38, 25, 10, '12:00'),
+    new Measurement("3", 32, 25, 10, '12:00'),
+    new Measurement("4", 39, 25, 10, '12:00'),
+    new Measurement("5", 6, 25, 10, '12:00'),
+    new Measurement("6", 7, 25, 10, '12:00'),
+    new Measurement("7", 10, 25, 10, '12:00'),
+    new Measurement("8", 20, 25, 10, '12:00'),
+    new Measurement("9", 3, 25, 10, '12:00'),
+    new Measurement("10", 0, 90, 25, '12:00'),
+    new Measurement("11", 1, 70, 25, '12:00'),
+    new Measurement("12", 30, 25, 10, '12:00'),
+    new Measurement("28", 38, 25, 10, '12:00'),
+    new Measurement("36", 32, 25, 10, '12:00'),
+    new Measurement("44", 39, 25, 10, '12:00'),
+    new Measurement("55", 6, 25, 10, '12:00'),
+    new Measurement("65", 7, 25, 10, '12:00'),
+    new Measurement("75", 10, 25, 10, '12:00'),
+    new Measurement("85", 20, 25, 10, '12:00'),
+    new Measurement("93", 3, 25, 10, '12:00'),
+    new Measurement("103", 0, 90, 25, '12:00'),
+    new Measurement("112", 1, 70, 25, '12:00'),
+    new Measurement("289", 38, 25, 10, '12:00'),
+    new Measurement("369", 32, 25, 10, '12:00'),
+    new Measurement("449", 39, 25, 10, '12:00'),
+    new Measurement("559", 6, 25, 10, '12:00'),
+    new Measurement("659", 7, 25, 10, '12:00'),
+    new Measurement("759", 10, 25, 10, '12:00'),
+    new Measurement("859", 20, 25, 10, '12:00'),
+    new Measurement("939", 3, 25, 10, '12:00'),
+    new Measurement("109", 0, 90, 25, '12:00'),
+    new Measurement("119", 1, 70, 25, '12:00')
+
+];

@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "Sprinkler",
+    "slug": "sprinkler",
+    "platforms": [
+      "android"
+    ],
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "description": "Extrémne cool appka. Možno najlepšia v súčastne známom vesmíre",
+    "githubUrl": "https://github.com/NicolasMacak/bcSprinkler"
+  }
+}
