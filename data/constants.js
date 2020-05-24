@@ -7,7 +7,10 @@ export const COLORS = {
     MeasuremenHeader: '#8d5ddc',
     HistoryHeader: '#ce5c50',
     StatisticsHeader: '#44da89',
-    SettingsHeader: '#446eda'
+    SettingsHeader: '#446eda',
+
+
+    authButton: '#4068c8'
 };
 
 

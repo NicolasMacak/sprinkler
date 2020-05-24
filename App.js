@@ -6,11 +6,10 @@ import ReduxThunk from 'redux-thunk';
 
 import AdditionalScreenNavigator from './navigation/ScreensNavigator';
 import AuthScreen from './screens/AuthScreen';
-
-import measurementsReducer from './store/reducers/measurements';
+import authReducer from './store/reducers/auth';
 
 const rootReducer = combineReducers({
-  measurements: measurementsReducer
+  auth: authReducer
 });
 
 const store = createStore(rootReducer, applyMiddleware(ReduxThunk));
@@ -19,10 +18,14 @@ export default function App() {
   return (
 
     // <MeasurementScreen />
-    // <AuthScreen />
-    <Provider store={store}>
-      <AdditionalScreenNavigator />
-    </Provider>
+    // <Provider store={store}>
+    //   <AuthScreen />
+    // </Provider>
+
+
+    //   <Provider store={store}>
+    <AdditionalScreenNavigator />
+    // </Provider>
   );
 }
 

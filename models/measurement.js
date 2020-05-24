@@ -1,9 +1,9 @@
 class Measurement {
-    constructor(id, airTemperature, airHumidity, soilMoisture, createdAt) {
+    constructor(id, airtemp, airhum, soilmoist, createdAt) {
         this.id = id;
-        this.airTemperature = airTemperature;
-        this.airHumidity = airHumidity;
-        this.soilMoisture = soilMoisture;
+        this.airtemp = airtemp;
+        this.airhum = airhum;
+        this.soilmoist = soilmoist;
         this.createdAt = createdAt;
     }
 }
