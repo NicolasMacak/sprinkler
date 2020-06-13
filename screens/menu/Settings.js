@@ -6,20 +6,26 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   ActivityIndicator,
-  Button,
-  Switch
+  Switch,
+  TouchableHighlight
 } from 'react-native';
+
+import { useSelector, useDispatch } from 'react-redux';
 
 import Card from '../../components/Card';
 import Input from '../../components/Input';
-import { COLORS } from '../../data/constants';
+import { COLORS, WateringsTypes } from '../../data/constants';
+import { HeaderButtons, Item } from 'react-navigation-header-buttons';
+import HeaderButton from '../../components/HeaderButton';
 
 const FORM_INPUT_UPDATE = 'FORM_INPUT_UPDATE';
-
-const token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGZlLmNvbSIsInVuaXF1ZV9uYW1lIjoiMSIsIm5iZiI6MTU4OTk3OTQyMiwiZXhwIjoxNTkwNTg0MjIyLCJpYXQiOjE1ODk5Nzk0MjJ9.iJNvbq7FyJB7fTLpt_vEtmUO-CQK8RQ0CFsCTc8Oi8k";
+import { update } from '../../store/actions/auth';
+import auth from '../../store/reducers/auth';
+// import CheckBox from '@react-native-community/checkbox';
+import { CheckBox } from 'react-native-elements';
 
 const formReducer = (state, action) => {
-  console.log(state);
+  console.log(action);
   if (action.type === FORM_INPUT_UPDATE) {
     const updatedValues = {
       ...state.inputValues,
@@ -42,42 +48,25 @@ const formReducer = (state, action) => {
   return state;
 };
 
-const updateSettings = (newMail, newNickname) => {
-  console.log(newMail, newNickname);
-  fetch('http://35.206.95.251:80/users',
-    {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        // 'Authorization': token
-      },
-      body: JSON.stringify({
-        "id": 1,
-        "email": newMail,
-        "nickname": newNickname,
-        "userSettings": "{\"temperature\": 5}"
-      })
-    })
-    .then((response) => response.json())
-    .then((responseJson) => console.log(responseJson))
-    .catch((error) => {
-      console.error(error);
-    })
-
-};
-
-
+// Automatic 0, Manual 1, Critical 2 
 const Settings = props => {
   // const [userSettings, setUserSettings] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  // const [isLoading, setIsLoading] = useState(false);
 
+  const initialFillAutomaticRegulation = useSelector(state => state.auth.fillAutomaticRegulation) !== undefined ? useSelector(state => state.auth.fillAutomaticRegulation) : false;
+  const initialAllowedWaterings = useSelector(state => state.auth.allowedWateringTypes) !== undefined ? useSelector(state => state.auth.allowedWateringTypes) : false;
+  const userId = useSelector(state => state.auth.userId);
+  const token = useSelector(state => state.auth.token);
 
+  const dispatch = useDispatch();
+
+  const [fillAutomaticRegulation, setFillAutomaticReg] = useState(initialFillAutomaticRegulation);
+  const [allowedWaterings, setAllowedWaterings] = useState(initialAllowedWaterings);
 
   const [formState, dispatchFormState] = useReducer(formReducer, {
     inputValues: {
-      email: '',
-      nickname: '',
-      password: ''
+      email: useSelector(state => state.auth.mail),
+      nickname: useSelector(state => state.auth.nickname)
     },
     inputValidities: {
       email: false,
@@ -99,104 +88,129 @@ const Settings = props => {
     [dispatchFormState]
   );
 
-  const confirmSettingsHandler = () => {
-    console.log("Handler");
-    console.log(formState.inputValues.email,
-      formState.inputValues.nickname);
-    setIsLoading(true);
-    updateSettings(
-      formState.inputValues.email,
-      formState.inputValues.nickname
-    );
-    setIsLoading(false);
+  const handleAllowedTypes = (allowedType) => {
+
+    if (allowedWaterings.includes(allowedType)) {
+
+      let tmpFiled = allowedWaterings;
+      tmpFiled = tmpFiled.filter(iterator => iterator !== allowedType);
+
+      setAllowedWaterings(tmpFiled);
+    }
+    else {
+
+      setAllowedWaterings([...allowedWaterings, allowedType]);
+    }
+
   };
 
-  // useEffect(() => {
-  //   fetch('http://35.206.95.251:80/users', {
-  //     method: 'GET', headers: {
-  //       'Authorization': token
-  //     },
-  //   })
-  //     .then((response) => response.json())
-  //     .then((responseJson) => setUserSettings(responseJson))
-  //     .catch((error) => {
-  //       console.error(error);
-  //     })
-  // }, []);
+  const confirmSettingsHandler = useCallback(() => {
 
-  // console.log(userSettings);
+
+
+    dispatch(update(
+      userId,
+      token,
+      formState.inputValues.email,
+      formState.inputValues.nickname,
+      allowedWaterings,
+      fillAutomaticRegulation
+    ));
+
+  }, [dispatch, formState, allowedWaterings, fillAutomaticRegulation]);
+
+  useEffect(() => {
+    props.navigation.setParams({ putSettings: confirmSettingsHandler });
+  }, [confirmSettingsHandler]);
+
   return (
-    <KeyboardAvoidingView
-      behavior="padding"
-      keyboardVerticalOffset={50}
+    <View
+      // behavior="padding"
+      // keyboardVerticalOffset={50}
       style={styles.screen}>
       <Card style={styles.card}>
+        <ScrollView style={styles.userSettingsContainer}>
+          <Input
+            id="email"
+            label="Email"
+            keyboardType="email-address"
+            email
+            autoCapitalize="none"
+            errorText="Zadajte valídny email"
+            initialValue={formState.inputValues.email}
+            onInputChange={inputChangeHandler}
+          />
+          <Input
+            id="nickname"
+            label="Meno"
+            autoCapitalize="none"
+            initialValue={formState.inputValues.nickname}
+            onInputChange={inputChangeHandler}
+          />
 
-        {/* {
-          Object.keys(userSettings).length === 0 ?
-            (<ActivityIndicator size={50} color={COLORS.SettingsHeader} />) :
-            ( */}
-
-        <ScrollView>
-          <View style={styles.userSettingsContainer}>
-            <Input
-              id="email"
-              label="Email"
-              keyboardType="email-address"
-              email
-              autoCapitalize="none"
-              errorText="Zadajte valídny email"
-              initialValue="test@tfe.com"
-              onInputChange={inputChangeHandler}
-            />
-
-            <Input
-              id="nickname"
-              label="Meno"
-              autoCapitalize="none"
-              initialValue="Nicolas"
-              onInputChange={inputChangeHandler}
-            />
-
-            {/* <Input
-              id="password"
-              label="Heslo"
-              keyboardType="default"
-              secureTextEntry
-              minLength={5}
-              autoCapitalize="none"
-              errorText="Zadajte valídne heslo"
-              onInputChange={inputChangeHandler}
-            /> */}
-
-            {isLoading ?
-              <ActivityIndicator
-                size="small"
-                color='blue'
-              //   style={{ backgroundColor: COLORS.authButton, height: '100%' }} 
-              /> :
-              <Button
-                title="Potvrdiť"
-                onPress={confirmSettingsHandler}
-              // color={COLORS.authButton}
-              //    disabled={!isFormvalid}
-
-              />
-            }
-
+          <View style={styles.switchContainer}>
+            <Text>Predvyplniť reguláciu</Text>
             <Switch
-              trackColor={{ false: "#767577", true: "#81b0ff" }}
-              thumbColor={true ? "#f5dd4b" : "#f4f3f4"}
-              ios_backgroundColor="#3e3e3e"
-              value={true}
-            />
+              trackColor={{ false: "#D3D3D3", true: "#81b0ff" }}
+              thumbColor={COLORS.SettingsHeader}
+              onValueChange={() => { setFillAutomaticReg(previousState => !previousState) }}
+              value={fillAutomaticRegulation} />
           </View>
-        </ScrollView>
 
-        {/* )} */}
+          <View style={{ marginTop: 25 }}>
+            <Text>Zobrať typy regulácií</Text>
+            <View style={styles.checkboxContainer}>
+              <CheckBox
+                title='Automatické'
+                containerStyle={{ backgroundColor: 'white', borderWidth: 0 }}
+                onPress={() => handleAllowedTypes(WateringsTypes.AUTOMATIC)}
+                checkedColor={COLORS.SettingsHeader}
+                checked={allowedWaterings.includes(WateringsTypes.AUTOMATIC)}
+              />
+            </View>
+
+            <View style={styles.checkboxContainer}>
+              <CheckBox
+                title='Manuálne'
+                containerStyle={{ backgroundColor: 'white', borderWidth: 0 }}
+                onPress={() => handleAllowedTypes(WateringsTypes.MANUAL)}
+                checkedColor={COLORS.SettingsHeader}
+                checked={allowedWaterings.includes(WateringsTypes.MANUAL)}
+              />
+            </View>
+
+            <View style={styles.checkboxContainer}>
+              <CheckBox
+                title='Kritické'
+                containerStyle={{ backgroundColor: 'white', borderWidth: 0 }}
+                onPress={() => handleAllowedTypes(WateringsTypes.CRITICAL)}
+                checkedColor={COLORS.SettingsHeader}
+                checked={allowedWaterings.includes(WateringsTypes.CRITICAL)}
+              />
+            </View>
+          </View>
+
+        </ScrollView>
       </Card>
-    </KeyboardAvoidingView>
+    </View>
   );
+};
+
+
+Settings.navigationOptions = navigationData => {
+
+  const putSettings = navigationData.navigation.getParam('putSettings');
+  return {
+    headerRight: () =>
+      <HeaderButtons HeaderButtonComponent={HeaderButton}>
+        <Item
+          title="Favorite"
+          iconName="save"
+          onPress={putSettings}
+        />
+      </HeaderButtons>
+
+  };
 };
 
 const styles = StyleSheet.create({
@@ -204,6 +218,17 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 25,
+    // height: '100%'
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 5
   },
   card: {
     width: '90%',
@@ -214,7 +239,6 @@ const styles = StyleSheet.create({
   userSettingsContainer: {
     width: '80%',
     maxWidth: 400,
-    maxHeight: 400,
     padding: 20
   }
 });

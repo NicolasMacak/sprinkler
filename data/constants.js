@@ -2,11 +2,11 @@ export const COLORS = {
     bottomGradient: '#66ccff',
     topGradient: '#2952ff',
 
-    RegulationHeader: '#6BA7CC',
+    RegulationHeader: '#496b9c',
     MenuHeader: '#4fbee2',
-    MeasuremenHeader: '#8d5ddc',
-    HistoryHeader: '#ce5c50',
-    StatisticsHeader: '#44da89',
+    MeasuremenHeader: '#72178a',
+    HistoryHeader: '#00727f',
+    StatisticsHeader: '#04650c',
     SettingsHeader: '#446eda',
 
 
@@ -18,7 +18,13 @@ export const TITLES = {
     RegulationScreen: 'Regulácia toku',
     MenuScreen: 'Menu',
     MeasuremenScreen: 'Merania',
-    HistoryScreen: 'História regulácie',
+    HistoryScreen: 'Zavlažovania',
     StatisticsScreen: 'Štatistika',
     SettingsScreen: 'Nastavenia'
+};
+
+export const WateringsTypes = {
+    AUTOMATIC: 0,
+    MANUAL: 1,
+    CRITICAL: 2
 };

@@ -1,21 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, Text, FlatList, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import moment from "moment";
 
 import Card from '../../components/Card';
-import { measurements } from '../../data/dummyData';
 import { COLORS } from '../../data/constants';
 
 let actualDay = null;
+
 const MeasurementScreen = props => {
 
     const [measurmentsData, setMeasurementsData] = useState([]);
+    const [endReached, setEndReached] = useState(false);
 
     const measurementsDataHandler = (response) => {
 
-        setMeasurementsData([...response, ...measurements]);
+        if (response.length === 0) {
+            setEndReached(true);
+        }
+
+        setMeasurementsData([...measurmentsData, ...response]);
     };
+
+    const renderFooter = () => {
+        return (
+            !endReached ?
+                <View>
+                    <ActivityIndicator size={50} color={COLORS.MeasuremenHeader} />
+                </View> : null
+        );
+    }
+
 
     const renderHeader =
 
@@ -25,10 +40,10 @@ const MeasurementScreen = props => {
                 <Text style={{ ...styles.itemText, ...styles.headerText }}>Vlhkosť vzduchu</Text>
             </View>
             <View style={{ ...styles.column, borderLeftWidth: 0 }}>
-                <Text style={{ ...styles.itemText, ...styles.headerText }}>Teplota vzduchu</Text>
+                <Text style={{ ...styles.itemText, ...styles.headerText }}>Teplota vzduchu  (°C)</Text>
             </View>
             <View style={styles.column}>
-                <Text style={{ ...styles.itemText, ...styles.headerText }}>Vlkhosť pôdy</Text>
+                <Text style={{ ...styles.itemText, ...styles.headerText }}>Vlkhosť pôdy        (%)</Text>
             </View>
             <View style={styles.column}>
                 <Text style={{ ...styles.itemText, ...styles.headerText }}>Čas záznamu</Text>
@@ -38,19 +53,22 @@ const MeasurementScreen = props => {
 
     const renderRecord = (measurement) => {
 
-        let isNewDay = false;
-        let thisDay = moment(measurement.item.createdAt).format("DD");
+        // let isNewDay = false;
+        // const thisDay = moment(measurement.item.createdAt).format("DD");
+        // console.log(thisDay);
 
-        if (actualDay !== thisDay) {
-            isNewDay = true;
-            actualDay = thisDay;
-        }
+        // if (actualDay !== thisDay) {
+        //     isNewDay = true;
+        //     actualDay = thisDay;
+        // }
+        // console.log(isNewDay);
 
         return <View style={styles.screen}>
-
-            {isNewDay ? (<View style={[{ flexDirection: 'row', alignItems: 'center', width: '100%', borderTopColor: 'black', borderTopWidth: 1, borderBottomColor: 'black', borderBottomWidth: 1 }]}>
-                <Text style={{ ...styles.itemText, ...styles.newDayText }}>{moment(measurement.item.createdAt).format("M. D. YYYY")}</Text>
-            </View>) : null}
+            {/* 
+            {isNewDay ?
+                (<View style={[{ flexDirection: 'row', alignItems: 'center', width: '100%', borderTopColor: 'black', borderTopWidth: 1, borderBottomColor: 'black', borderBottomWidth: 1 }]}>
+                    <Text style={{ ...styles.itemText, ...styles.newDayText }}>{moment(measurement.item.createdAt).format("M. D. YYYY")}</Text>
+                </View>) : null} */}
 
             <View
                 style={[{ flexDirection: 'row' }, measurement.index % 2 == 1 ? {} : styles.stripLine]}>
@@ -62,7 +80,7 @@ const MeasurementScreen = props => {
                     <Text style={styles.itemText}>{measurement.item.airtemp}</Text>
                 </View>
                 <View style={styles.column}>
-                    <Text style={styles.itemText}>{measurement.item.soilmoist}</Text>
+                    <Text style={styles.itemText}>{Math.floor((measurement.item.soilmoist - 300) / 300 * 100)}</Text>
                 </View>
                 <View style={styles.column}>
                     <Text style={styles.itemText}>
@@ -76,8 +94,11 @@ const MeasurementScreen = props => {
         </View>
     };
 
-    useEffect(() => {
-        fetch('http://35.206.95.251:80/measurements', {
+
+
+    const getMeasurements = () => {
+
+        fetch(`http://35.206.95.251:80/measurements?skip=${measurmentsData.length}&perPage=50`, {
             method: 'GET'
         })
             .then((response) => response.json())
@@ -85,6 +106,10 @@ const MeasurementScreen = props => {
             .catch((error) => {
                 console.error(error);
             })
+    };
+
+    useEffect(() => {
+        getMeasurements();
     }, []);
 
     return (
@@ -92,19 +117,16 @@ const MeasurementScreen = props => {
 
             <Card style={styles.card}>
 
-
                 {renderHeader}
-                {
-                    measurmentsData.length === 0 ?
-                        (<ActivityIndicator size={50} color={COLORS.MeasuremenHeader} />) :
-                        (
-                            <FlatList
-                                keyExtractor={(item, index) => item.id.toString()}
-                                data={measurmentsData}
-                                renderItem={renderRecord}
-                            />
-                        )
-                }
+                <FlatList
+                    keyExtractor={(item, index) => item.id.toString()}
+                    data={measurmentsData}
+                    renderItem={renderRecord}
+                    ListFooterComponent={renderFooter}
+                    onEndReached={!endReached ? getMeasurements : null}
+                    onEndReachedThreshold={0.5}
+                />
+
             </Card>
         </View>
     );

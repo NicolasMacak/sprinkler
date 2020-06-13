@@ -1,5 +1,6 @@
 export const SIGNUP = 'SIGNUP';
 export const LOGIN = 'LOGIN';
+export const UPDATE = 'UPDATE';
 
 export const signup = (email, nickname, password) => {
     return async dispatch => {
@@ -32,7 +33,6 @@ export const signup = (email, nickname, password) => {
 export const login = (email, password) => {
     return async dispatch => {
 
-        console.log(email, password);
         const response = await fetch(
             'http://35.206.95.251:80/users/login',
             {
@@ -51,7 +51,37 @@ export const login = (email, password) => {
         }
 
         const resData = await response.json();
-        console.log(resData);
         dispatch({ type: LOGIN });
+    };
+};
+
+export const update = (userId, token, mail, nickname, allowedWateringTypes, fillAutomaticRegulation) => {
+    return async dispatch => {
+
+        console.log(userId, mail, nickname, allowedWateringTypes, fillAutomaticRegulation);
+
+        fetch('http://35.206.95.251:80/users',
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token
+                },
+                body: JSON.stringify({
+                    id: userId,
+                    email: mail,
+                    nickname: nickname,
+                    userSettings: JSON.stringify({
+                        fillAutomaticRegulation: fillAutomaticRegulation,
+                        allowedWateringTypes: allowedWateringTypes
+                    })
+                })
+            })
+            // .then((response) => response.json())
+            // .then((responseJson) => console.log(responseJson))
+            .catch((error) => {
+                console.error(error);
+            })
+        dispatch({ type: UPDATE, mail, nickname, fillAutomaticRegulation, allowedWateringTypes });
     };
 };

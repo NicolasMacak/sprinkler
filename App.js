@@ -23,9 +23,9 @@ export default function App() {
     // </Provider>
 
 
-    //   <Provider store={store}>
-    <AdditionalScreenNavigator />
-    // </Provider>
+    <Provider store={store}>
+      <AdditionalScreenNavigator />
+    </Provider>
   );
 }
 

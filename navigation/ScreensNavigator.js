@@ -26,7 +26,7 @@ const createNavigationsOptions = (headerTitle, headerColor) => {
 const MenuNavigator = createStackNavigator({
     ScreensMenu: {
         screen: ScreensMenu,
-        navigationOptions: createNavigationsOptions(TITLES.MenuScreen, COLORS.MenuHeader)
+        navigationOptions: createNavigationsOptions(TITLES.MenuScreen, COLORS.RegulationHeader)
     },
     MeasurementsScreen: {
         screen: MeasurementsScreen,
@@ -84,7 +84,7 @@ const BottomNavigator = createMaterialBottomTabNavigator({
     },
     Menu: {
         screen: MenuNavigator,
-        navigationOptions: createBottomNavigationOptions(TITLES.MenuScreen, COLORS.MenuHeader, "bars")
+        navigationOptions: createBottomNavigationOptions(TITLES.MenuScreen, COLORS.RegulationHeader, "bars")
 
     }
 },

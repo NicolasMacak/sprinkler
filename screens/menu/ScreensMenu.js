@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
-
+import { HeaderButtons, Item } from 'react-navigation-header-buttons';
+import HeaderButton from '../../components/HeaderButton';
+import { COLORS } from '../../data/constants';
 import { MenuItems } from '../../data/menuItems';
 
 const ScreensMenu = props => {
@@ -38,11 +40,18 @@ const ScreensMenu = props => {
   );
 };
 
-ScreensMenu.navigationOptions = {
-  headerTitle: 'Menu',
-  headerStyle: {
-    backgroundColor: 'red'
-  }
+ScreensMenu.navigationOptions = navigationData => {
+
+  return {
+    headerRight: () =>
+      <HeaderButtons HeaderButtonComponent={HeaderButton}>
+        <Item
+          title="SignOut"
+          iconName="power-off"
+        />
+      </HeaderButtons>
+
+  };
 };
 
 
@@ -58,7 +67,7 @@ const styles = StyleSheet.create({
   menuItem: {
     flex: 1,
     margin: 8,
-    backgroundColor: '#c9ecfd',
+    backgroundColor: '#a3c1e3',
     height: 200,
     justifyContent: 'center',
     alignItems: 'center'
@@ -75,7 +84,9 @@ const styles = StyleSheet.create({
     marginTop: 20
   },
   menuItemHeader: {
-    fontSize: 18
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white'
   }
 });
 

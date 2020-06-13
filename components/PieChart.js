@@ -56,13 +56,12 @@ const CustomChartPie = props => {
     return <View style={styles.container}>
         <Text>{props.title}</Text>
         <PieChart
-            data={data}
+            data={props.data}
             width={Dimensions.get("window").width * 0.9}
-            height={220}
+            height={150}
             chartConfig={chartConfig}
             accessor="population"
             backgroundColor="transparent"
-            paddingLeft="15"
             showLegend={false}
         />
     </View>
