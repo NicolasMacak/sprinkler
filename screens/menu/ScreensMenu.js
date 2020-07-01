@@ -48,6 +48,7 @@ ScreensMenu.navigationOptions = navigationData => {
         <Item
           title="SignOut"
           iconName="power-off"
+          onPress={() => navigationData.navigation.navigate('Auth')}
         />
       </HeaderButtons>
 

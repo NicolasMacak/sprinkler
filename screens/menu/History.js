@@ -16,13 +16,14 @@ const History = props => {
   const onlyMyRegulations = useSelector(state => state.auth.onlyMyRegulations) !== undefined ? useSelector(state => state.auth.onlyMyRegulations) : false;
   const userId = useSelector(state => state.auth.userId);
   const token = useSelector(state => state.auth.token);
+  const allowedWateringTypes = useSelector(state => state.auth.allowedWateringTypes).toString();
+
 
   const HistoryDataHandler = (response) => {
-    console.log(response);
     if (response.length === 0) {
       setEndReached(true);
     }
-
+    console.log(response);
     setHistoryData([...historyData, ...response]);
   };
 
@@ -73,7 +74,7 @@ const History = props => {
         break;
 
       case 2:
-        type = 'Kritick0'
+        type = 'Kritické'
         break;
 
       default:
@@ -114,7 +115,8 @@ const History = props => {
 
   const getHistoryData = () => {
 
-    fetch(`http://35.206.95.251:80/Waterings/?skip=${historyData.length}&perPage=50`, {
+
+    fetch(`http://35.206.95.251:80/Waterings/?skip=${historyData.length}&perPage=50&wateringType=${allowedWateringTypes}`, {
       method: 'GET',
       headers: {
         'Authorization': token

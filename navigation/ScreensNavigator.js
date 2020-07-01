@@ -1,6 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from 'react-navigation-stack';
-import { createAppContainer } from 'react-navigation';
+import { createAppContainer, createSwitchNavigator } from 'react-navigation';
 import { createMaterialBottomTabNavigator } from 'react-navigation-material-bottom-tabs';
 import { FontAwesome5 } from '@expo/vector-icons';
 
@@ -10,6 +10,7 @@ import Settings from '../screens/menu/Settings';
 import FlowRegulation from '../screens/FlowRegulation';
 import MeasurementsScreen from '../screens/menu/MeasurementsScreen';
 import Statistics from '../screens/menu/Statistics';
+import AuthScreen from '../screens/AuthScreen';
 
 import { COLORS, TITLES } from '../data/constants';
 
@@ -38,7 +39,7 @@ const MenuNavigator = createStackNavigator({
     },
     Statistics: {
         screen: Statistics,
-        navigationOptions: createNavigationsOptions(TITLES.SettingsScreen, COLORS.StatisticsHeader)
+        navigationOptions: createNavigationsOptions(TITLES.StatisticsScreen, COLORS.StatisticsHeader)
     },
     Settings: {
         screen: Settings,
@@ -92,5 +93,10 @@ const BottomNavigator = createMaterialBottomTabNavigator({
         shifting: true
     }
 );
+
+const MainNavigator = createSwitchNavigator({
+    Auth: AuthScreen,
+    App: BottomNavigator
+});
 
 export default createAppContainer(BottomNavigator);

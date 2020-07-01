@@ -21,12 +21,12 @@ export const signup = (email, nickname, password) => {
             });
 
         if (!response.ok) {
-            throw new Error('An Error has occured!');
+            throw new Error('CONFLICT');
         }
 
-        const resData = await response.json();
-        console.log(resData);
-        dispatch({ type: SIGNUP, token: resData.idToken, userId: resData.localId });
+        // const resData = await response.json();
+        // console.log(resData);
+        // dispatch({ type: SIGNUP, token: resData.idToken, userId: resData.localId });
     };
 };
 
@@ -47,18 +47,37 @@ export const login = (email, password) => {
             });
 
         if (!response.ok) {
-            throw new Error('Je to v riti!');
+            throw new Error('PASS');
         }
 
         const resData = await response.json();
-        dispatch({ type: LOGIN });
+
+        let userSettings = JSON.parse(resData.user.userSettings);
+
+        // console.log("resDATA", resData);
+
+        if (userSettings === null) {
+            userSettings = {
+                allowedWateringTypes: [0, 1, 2],
+                fillAutomaticRegulation: true
+            };
+        }
+
+        dispatch({
+            type: LOGIN,
+            token: resData.token,
+            userId: resData.user.userId,
+            nickname: resData.user.nickname,
+            allowedWateringTypes: userSettings.allowedWateringTypes,
+            fillAutomaticRegulation: userSettings.fillAutomaticRegulation
+        });
     };
 };
 
 export const update = (userId, token, mail, nickname, allowedWateringTypes, fillAutomaticRegulation) => {
     return async dispatch => {
 
-        console.log(userId, mail, nickname, allowedWateringTypes, fillAutomaticRegulation);
+        // console.log(userId, mail, nickname, allowedWateringTypes, fillAutomaticRegulation);
 
         fetch('http://35.206.95.251:80/users',
             {

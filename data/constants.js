@@ -15,7 +15,7 @@ export const COLORS = {
 
 
 export const TITLES = {
-    RegulationScreen: 'Regulácia toku',
+    RegulationScreen: 'Zavlažovanie',
     MenuScreen: 'Menu',
     MeasuremenScreen: 'Merania',
     HistoryScreen: 'Zavlažovania',

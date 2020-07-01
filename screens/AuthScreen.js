@@ -1,5 +1,5 @@
 import React, { useState, useReducer, useCallback, useEffect } from 'react';
-import { View, ScrollView, KeyboardAvoidingView, StyleSheet, Text, Button, ActivityIndicator } from 'react-native';
+import { View, ScrollView, KeyboardAvoidingView, StyleSheet, Text, Button, ActivityIndicator, ToastAndroid } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useDispatch } from 'react-redux';
 
@@ -11,8 +11,7 @@ import { COLORS } from '../data/constants';
 const FORM_INPUT_UPDATE = 'FORM_INPUT_UPDATE';
 
 const formReducer = (state, action) => {
-    console.log("state", state);
-    console.log("action", action);
+
     if (action.type === FORM_INPUT_UPDATE) {
         const updatedValues = {
             ...state.inputValues,
@@ -56,7 +55,21 @@ const AuthScreen = props => {
         formIsValid: false
     });
 
+    const useToaster = (message) => {
+        ToastAndroid.showWithGravityAndOffset(
+            message,
+            ToastAndroid.LONG,
+            ToastAndroid.TOP,
+            0,
+            100
+        )
+    };
+
+    console.log(isSignUp);
+
     const authHandler = async () => {
+
+        // console.log(isSignUp);
         let action;
         if (isSignUp) {
             action = authActions.signup(
@@ -72,21 +85,43 @@ const AuthScreen = props => {
             )
         }
 
+        // if (isSignUp) {
+        //     console.log("vraciam");
+        //     return;
+        // }
+
         setError(null);
         setIsLoading(true);
+        console.log("PREIsSignUp", isSignUp);
         try {
             await dispatch(action);
+
+            console.log("IsSignUp", isSignUp);
+            if (!isSignUp) {
+                props.navigation.navigate('App');
+            }
+            else {
+                useToaster("Registrácia prebehla úspešne");
+                setIsLoading(false);
+                setIsSignUp(false);
+            }
+
         }
         catch (err) {
             setError(err.message)
+            setIsLoading(false);
         }
 
-        setIsLoading(false);
     };
 
     useEffect(() => {
-        if (error) {
-            console.log(error);
+
+        if (error == "PASS") {
+
+            useToaster("Nesprávne prihlasovacie meno alebo heslo!");
+        } else if (error == "CONFLICT") {
+
+            useToaster("Zadaný email je obsadený!");
         }
 
     }, [error]);
@@ -109,9 +144,9 @@ const AuthScreen = props => {
     );
 
     return (
-        <KeyboardAvoidingView
-            behavior="padding"
-            keyboardVerticalOffset={50}
+        <View
+            // behavior="padding"
+            // keyboardVerticalOffset={50}
             style={styles.screen}>
 
             <LinearGradient colors={['#66ccff', '#2952ff']} style={styles.gradient}>
@@ -133,9 +168,10 @@ const AuthScreen = props => {
                         {isSignUp ? (
                             <Input
                                 id="nickname"
-                                label="Meno"
+                                label="Prezývka"
                                 keyboardType="default"
                                 required
+                                minLength={3}
                                 autoCapitalize="words"
                                 errorText="Toto pole nesmie byť prázdne"
                                 initialValue=""
@@ -150,7 +186,7 @@ const AuthScreen = props => {
                             keyboardType="default"
                             secureTextEntry
                             required
-                            minLength={5}
+                            minLength={8}
                             autoCapitalize="none"
                             errorText="Zadajte valídne heslo"
                             initialValue=""
@@ -180,12 +216,13 @@ const AuthScreen = props => {
                                 title={`Prepnúť na ${isSignUp ? 'Prihlásenie' : 'Registráciu'}`}
                                 onPress={() => {
                                     setIsSignUp(prevState => !prevState);
+                                    console.log(isSignUp);
                                 }} />
                         </View>
                     </ScrollView>
                 </Card>
             </LinearGradient>
-        </KeyboardAvoidingView>
+        </View>
 
     );
 };

@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useReducer } from 'react';
+import React, { useState, useEffect, useReducer, useCallback } from 'react';
 import { View, Text, StyleSheet, Slider, Button, ActivityIndicator, ToastAndroid, Switch } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { HeaderButtons, Item } from 'react-navigation-header-buttons';
 import HeaderButton from '../components/HeaderButton';
 import CountDown from 'react-native-countdown-component';
 import TimePicker from "react-native-modal-datetime-picker";
+import { useIsFocused } from '@react-navigation/native';
 
 import Card from '../components/Card';
 import { COLORS } from '../data/constants';
+import * as Time from '../data/Time';
 
 import moment from "moment";
 
@@ -16,10 +17,19 @@ const FROM_INPUT = 'FROM';
 const TO_INPUT = 'TO';
 const FORM_INPUT_UPDATE = 'FORM_INPUT_UPDATE';
 const FORM_INITIALIZATION = 'FORM_INITIALIZATION';
+const SLIDER_UPDATE = 'SLIDER_UPDATE';
 
 const formReducer = (state, action) => {
-  console.log(state, action);
-  if (action.type === FORM_INPUT_UPDATE) {
+
+  if (action.type === SLIDER_UPDATE) {
+
+    return {
+      ...state,
+      [action.inputId]: action.inputValue
+    };
+  }
+
+  else if (action.type === FORM_INPUT_UPDATE) {
     return {
       ...state,
       [action.inputId]: action.inputValue
@@ -40,14 +50,13 @@ const formReducer = (state, action) => {
   return state;
 };
 
-
 const FlowRegulation = props => {
 
   const [formState, dispatchFormState] = useReducer(formReducer, {
-    wateringInterval: 50,
+    wateringInterval: 60,
     criticalSoilMoist: 1,
-    fromTime: new Date,
-    toTime: new Date,
+    fromTime: "2020-06-14T06:00:00.833Z",
+    toTime: "2020-06-14T16:00:00.833Z",
     nextWatering: new Date,
     countDown: 10,
 
@@ -55,13 +64,16 @@ const FlowRegulation = props => {
 
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [timePickingInput, setTimePickingInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  // const [isLoading, setIsLoading] = useState(false);
   const [counterId, setCounterId] = useState(0);
 
   const token = useSelector(state => state.auth.token);
 
+  // const switchFillAutomaticRegulation = () => {
+  // };
+
+
   const getAutomaticWatering = () => {
-    setIsLoading(true);
 
     fetch('http://35.206.95.251:80/Waterings/automatic', {
       method: 'GET',
@@ -75,38 +87,56 @@ const FlowRegulation = props => {
         console.error(error);
       })
 
-    setIsLoading(false);
   };
 
   useEffect(() => {
+
     getAutomaticWatering();
   }, []);
 
-  const timeToSeconds = (time) => { return time.getHours() * 3600 + time.getMinutes() * 60 + time.getSeconds() };
+  const whenIsNextWatering = (starWateringTime, endWateringTime, interval) => {
 
+    const now = Time.now();
+    let nextWateringTime = starWateringTime;
+    let countDown = null;
 
-
-  const responseHandler = (response) => {
-    const now = new Date();
-    const startWatering = new Date(response.startTime);
-
-    let nextWateringTime = startWatering;
+    // dalsie polievanie
     while (nextWateringTime < now) {
-      nextWateringTime = moment(nextWateringTime).add(response.interval, 'seconds');
+      nextWateringTime = moment(nextWateringTime).add(interval, 'seconds');
     }
 
     nextWateringTime = new Date(nextWateringTime);
 
-    console.log(timeToSeconds(nextWateringTime) - timeToSeconds(now));
+    if (nextWateringTime > endWateringTime) {
+
+      nextWateringTime = starWateringTime;
+      countDown = 86400 - Time.timeToSeconds(now) + Time.timeToSeconds(starWateringTime);
+    } else {
+
+      countDown = Time.timeToSeconds(nextWateringTime) - Time.timeToSeconds(now);
+    }
+
+    return {
+      time: nextWateringTime,
+      countDown: countDown
+    };
+
+  };
+
+  const responseHandler = (response) => {
+    const startWatering = Time.correctDate(response.startTime);
+    const endWatering = Time.correctDate(response.endTime);
+
+    const nextWateringInfo = whenIsNextWatering(startWatering, endWatering, response.interval);
 
     dispatchFormState({
       type: FORM_INITIALIZATION,
       wateringInterval: Math.floor(response.interval / 60),
       criticalSoilMoist: Math.floor((response.criticalSoilMoist - 300) / 300 * 100),
-      fromTime: response.startTime,
-      toTime: response.endTime,
-      nextWatering: nextWateringTime,
-      countDown: timeToSeconds(nextWateringTime) - timeToSeconds(now)
+      fromTime: startWatering,
+      toTime: endWatering,
+      nextWatering: nextWateringInfo.time,
+      countDown: nextWateringInfo.countDown
     })
     setCounterId((Number(counterId) + 1).toString());
   }
@@ -119,10 +149,11 @@ const FlowRegulation = props => {
       0,
       200
     )
-  }
+  };
 
   const setManual = () => {
-    fetch('http://127.0.0.1:80/Waterings/manual',
+
+    fetch('http://35.206.95.251:80/Waterings/manual',
       {
         method: 'POST',
         headers: {
@@ -130,17 +161,14 @@ const FlowRegulation = props => {
           'Authorization': token
         },
         body: JSON.stringify({})
-      }).then(() => {
-        useToaster('Úspešne zaradené do ďalšieho cyklu')
       })
+      .then(() => useToaster('Uspešne nastavené'))
       .catch((error) => {
         console.error(error);
       });
   };
 
   const setAutomatic = () => {
-
-    console.log("interval", formState.wateringInterval * 60, "critical", (formState.criticalSoilMoist / 100 * 300) + 300);
 
     fetch('http://35.206.95.251:80/Waterings/automatic',
       {
@@ -155,8 +183,10 @@ const FlowRegulation = props => {
           "StartTime": formState.fromTime,
           "EndTime": formState.toTime
         })
-      }).then(() => {
-        useToaster('Automatická regulácia nastavená')
+      }).then(response => response.json())
+      .then((response) => {
+        useToaster('Úspešne nastavené!');
+        responseHandler(response);
       })
       .catch((error) => {
         console.error(error);
@@ -165,25 +195,29 @@ const FlowRegulation = props => {
   };
 
   const handleTimePick = (date) => {
+    date = Time.shift(date);
 
     if (timePickingInput === FROM_INPUT) {
 
-      // if (timeToSeconds(new Date(date)) > timeToSeconds(formState.toTime)) {
-      //   useToaster("Chybný interval");
-      //   cancelPicker();
-      //   return;
-      // }
+      // zaciatok za koncom
+      if (moment(date).isAfter(formState.toTime)) {
+        cancelPicker();
+        useToaster("Nesprávne zvolený rozsah");
+        return;
+      }
 
       cancelPicker();
-      formUpdate('fromTime', moment(date).set('second', 0));
+      formUpdate('fromTime', moment(date));
     }
     else if (timePickingInput === TO_INPUT) {
 
-      // if (date < formState.fromTime) {
-      //   useToaster("Chybný interval");
-      //   cancelPicker();
-      //   return;
-      // }
+      // koniec pred zaciatkom
+      if (moment(date).isBefore(formState.fromTime)) {
+        cancelPicker();
+        useToaster("Nesprávne zvolený rozsah");
+        return;
+      }
+
 
       cancelPicker();
       formUpdate('toTime', date);
@@ -199,9 +233,21 @@ const FlowRegulation = props => {
     inputValue: inputValue
   });
 
-  const wateringIntervalHandler = (value) => { formUpdate('wateringInterval', value) };
+  const wateringIntervalHandler = (value) => {
+    dispatchFormState({
+      type: SLIDER_UPDATE,
+      inputId: 'wateringInterval',
+      inputValue: value
+    })
+  };
 
-  const criticalSoilMoistHandler = (value) => { formUpdate('criticalSoilMoist', value) };
+  const criticalSoilMoistHandler = (value) => {
+    dispatchFormState({
+      type: SLIDER_UPDATE,
+      inputId: 'criticalSoilMoist',
+      inputValue: value
+    })
+  };
 
   const handleEndOfCountDown = () => {
 
@@ -214,13 +260,14 @@ const FlowRegulation = props => {
     <View style={styles.container}>
 
       <Card style={styles.shadowBox}>
-        <Text style={styles.text}>Ďalší zavlažovací proces: {moment(formState.nextWatering).format("HH:mm")}</Text>
-        {/* <View style={styles.formControl}>
+        <Text style={styles.text}>Ďalšie zalievanie: {Time.format(formState.nextWatering)}</Text>
+        <View style={styles.formControl}>
           <CountDown
             id={counterId.toString()}
             until={formState.countDown}
             size={30}
             onFinish={handleEndOfCountDown}
+            // onPress={() => { setCounterId((Number(counterId) + 1).toString()); }}
             digitStyle={{ backgroundColor: '#FFF' }}
             digitTxtStyle={{ color: COLORS.RegulationHeader }}
             timeToShow={['H', 'M', 'S']}
@@ -230,7 +277,7 @@ const FlowRegulation = props => {
 
         <View style={{ ...styles.rowButtonContainer, ...styles.formControl }}>
           <View style={{ width: 100 }}>
-            <Button title={"Od " + moment(formState.fromTime).format("HH:mm")} onPress={() => {
+            <Button title={"Od " + Time.format(formState.fromTime)} onPress={() => {
               setShowTimePicker(true);
               setTimePickingInput(FROM_INPUT);
             }}
@@ -239,7 +286,7 @@ const FlowRegulation = props => {
           </View>
 
           <View style={{ width: 100 }}>
-            <Button title={"Do " + moment(formState.toTime).format("HH:mm")} onPress={() => {
+            <Button title={"Do " + Time.format(formState.toTime)} onPress={() => {
               setShowTimePicker(true);
               setTimePickingInput(TO_INPUT);
             }}
@@ -249,12 +296,12 @@ const FlowRegulation = props => {
         </View>
 
         <View style={styles.formControl}>
-          <Text style={styles.text}>Dĺžka intervalu: {formState.wateringInterval} m</Text>
+          <Text style={styles.text}>Zaliať vždy po: {formState.wateringInterval} min</Text>
 
           <View style={{ width: '100%', marginTop: 20 }}>
             <Slider
               step={1}
-              minimumValue={1}
+              minimumValue={3}
               maximumValue={300}
               onValueChange={wateringIntervalHandler}
               value={formState.wateringInterval}
@@ -266,7 +313,7 @@ const FlowRegulation = props => {
         </View>
 
         <View style={styles.formControl}>
-          <Text style={styles.text}>Ak je menej než: {formState.criticalSoilMoist} %</Text>
+          <Text style={styles.text}>Ak je vlhkosť pôdy menej než: {formState.criticalSoilMoist} %</Text>
 
           <View style={{ width: '100%', marginTop: 20 }}>
             <Slider
@@ -294,7 +341,7 @@ const FlowRegulation = props => {
             color={COLORS.RegulationHeader}
             onPress={setManual}
           />
-        </View> */}
+        </View>
 
       </Card>
 
@@ -304,6 +351,7 @@ const FlowRegulation = props => {
         mode="time"
         onConfirm={handleTimePick}
         onCancel={cancelPicker}
+        date={timePickingInput === FROM_INPUT ? Time.shift(formState.fromTime, -2) : Time.shift(formState.toTime, -2)}
       />
 
     </View >
@@ -318,6 +366,7 @@ FlowRegulation.navigationOptions = navigationData => {
         <Item
           title="SignOut"
           iconName="power-off"
+          onPress={() => navigationData.navigation.navigate('Auth')}
         />
       </HeaderButtons>
 

@@ -39,7 +39,7 @@ const Statistics = props => {
                 name: response.userRatio[i].nickname,
                 population: response.userRatio[i].count,
                 color: color,
-                legendFontColor: "#7F7F7F",
+                legendFontColor: "white",
                 legendFontSize: 15
             }];
         }
@@ -49,21 +49,21 @@ const Statistics = props => {
                 name: 'Automatické',
                 population: response.numberOfAutomatic,
                 color: '#40e0d0',
-                legendFontColor: "#7F7F7F",
+                legendFontColor: "white",
                 legendFontSize: 15
             },
             {
                 name: 'Manuálne',
                 population: response.numberOfManual,
                 color: '#576675',
-                legendFontColor: "#7F7F7F",
+                legendFontColor: "white",
                 legendFontSize: 15
             },
             {
                 name: 'Kritické',
                 population: response.numberOfCritical,
                 color: '#ff0000',
-                legendFontColor: "#7F7F7F",
+                legendFontColor: "white",
                 legendFontSize: 15
             }
         ];
@@ -181,20 +181,24 @@ const Statistics = props => {
                             color="#509a3d"
                         />
 
-                        <PieChart
-                            title="Pomer manuálnych regulácií"
-                            data={ratioData.userRatio}
-                        />
+                        <View style={{ width: '90%' }}>
+                            <PieChart
+                                title="Pomer manuálnych regulácií"
+                                data={ratioData.userRatio}
+                            />
+                        </View>
 
-                        <PieChart
-                            title="Pomer typov regulácií"
-                            data={ratioData.wateringTypeRatio}
-                        />
+                        <View style={{ width: '90%' }}>
+                            <PieChart
+                                title="Pomer typov regulácií"
+                                data={ratioData.wateringTypeRatio}
+                            />
+                        </View>
 
                     </ScrollView>)
                     : <ActivityIndicator size={50} color={COLORS.StatisticsHeader} />}
             </Card>
-        </View>
+        </View >
     );
 };
 

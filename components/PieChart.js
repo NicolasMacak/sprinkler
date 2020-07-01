@@ -42,10 +42,10 @@ const data = [
 ];
 
 const chartConfig = {
-    backgroundGradientFrom: "#1E2923",
-    backgroundGradientFromOpacity: 0,
-    backgroundGradientTo: "#08130D",
-    backgroundGradientToOpacity: 0.5,
+    // backgroundGradientFrom: "#1E2923",
+    // backgroundGradientFromOpacity: 0,
+    // backgroundGradientTo: "#08130D",
+    // backgroundGradientToOpacity: 0.5,
     color: (opacity = 1) => `rgba(26, 255, 146, ${opacity})`,
     strokeWidth: 2, // optional, default 3
     barPercentage: 0.5,
@@ -54,23 +54,39 @@ const chartConfig = {
 
 const CustomChartPie = props => {
     return <View style={styles.container}>
-        <Text>{props.title}</Text>
-        <PieChart
-            data={props.data}
-            width={Dimensions.get("window").width * 0.9}
-            height={150}
-            chartConfig={chartConfig}
-            accessor="population"
-            backgroundColor="transparent"
-            showLegend={false}
-        />
+
+        <View style={styles.title}>
+
+            <View style={styles.title}>
+                <Text style={{ color: 'white', fontSize: 20 }} >{props.title}</Text>
+            </View>
+            <PieChart
+                data={props.data}
+                width={Dimensions.get("window").width}
+                height={120}
+                chartConfig={chartConfig}
+                accessor="population"
+                backgroundColor="transparent"
+                showLegend={false}
+            />
+        </View>
     </View>
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        alignItems: 'center'
+        alignItems: 'center',
+        marginTop: 15
+    },
+    title: {
+        // borderTopLeftRadius: 10,
+        // borderTopRightRadius: 10,
+        flex: 1,
+        marginBottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#5b5963'
     }
 });
 

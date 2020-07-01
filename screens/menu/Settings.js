@@ -7,7 +7,8 @@ import {
   ScrollView,
   ActivityIndicator,
   Switch,
-  TouchableHighlight
+  TouchableHighlight,
+  ToastAndroid
 } from 'react-native';
 
 import { useSelector, useDispatch } from 'react-redux';
@@ -25,7 +26,7 @@ import auth from '../../store/reducers/auth';
 import { CheckBox } from 'react-native-elements';
 
 const formReducer = (state, action) => {
-  console.log(action);
+
   if (action.type === FORM_INPUT_UPDATE) {
     const updatedValues = {
       ...state.inputValues,
@@ -69,9 +70,7 @@ const Settings = props => {
       nickname: useSelector(state => state.auth.nickname)
     },
     inputValidities: {
-      email: false,
-      nickname: false,
-      password: false
+      nickname: true
     },
     formIsValid: false
   });
@@ -95,6 +94,11 @@ const Settings = props => {
       let tmpFiled = allowedWaterings;
       tmpFiled = tmpFiled.filter(iterator => iterator !== allowedType);
 
+      if (tmpFiled.length === 0) {
+        useToaster("Musí byť zvolený aspoň 1 typ regulácie");
+        return;
+      }
+
       setAllowedWaterings(tmpFiled);
     }
     else {
@@ -104,9 +108,17 @@ const Settings = props => {
 
   };
 
+  const useToaster = (message) => {
+    ToastAndroid.showWithGravityAndOffset(
+      message,
+      ToastAndroid.SHORT,
+      ToastAndroid.TOP,
+      0,
+      200
+    )
+  };
+
   const confirmSettingsHandler = useCallback(() => {
-
-
 
     dispatch(update(
       userId,
@@ -117,10 +129,14 @@ const Settings = props => {
       fillAutomaticRegulation
     ));
 
+    useToaster("Nastavenia aktualizované");
+
   }, [dispatch, formState, allowedWaterings, fillAutomaticRegulation]);
 
   useEffect(() => {
-    props.navigation.setParams({ putSettings: confirmSettingsHandler });
+
+    const failMessage = () => useToaster("Zadajte valídne meno");
+    props.navigation.setParams({ putSettings: formState.inputValidities.nickname ? confirmSettingsHandler : failMessage });
   }, [confirmSettingsHandler]);
 
   return (
@@ -130,7 +146,7 @@ const Settings = props => {
       style={styles.screen}>
       <Card style={styles.card}>
         <ScrollView style={styles.userSettingsContainer}>
-          <Input
+          {/* <Input
             id="email"
             label="Email"
             keyboardType="email-address"
@@ -139,26 +155,28 @@ const Settings = props => {
             errorText="Zadajte valídny email"
             initialValue={formState.inputValues.email}
             onInputChange={inputChangeHandler}
-          />
+          /> */}
           <Input
             id="nickname"
-            label="Meno"
+            label="Prezývka"
             autoCapitalize="none"
+            minLength={3}
+            errorText="Meno musí mať aspoň 3 písmená"
             initialValue={formState.inputValues.nickname}
             onInputChange={inputChangeHandler}
           />
 
-          <View style={styles.switchContainer}>
+          {/* <View style={styles.switchContainer}>
             <Text>Predvyplniť reguláciu</Text>
             <Switch
               trackColor={{ false: "#D3D3D3", true: "#81b0ff" }}
               thumbColor={COLORS.SettingsHeader}
               onValueChange={() => { setFillAutomaticReg(previousState => !previousState) }}
               value={fillAutomaticRegulation} />
-          </View>
+          </View> */}
 
           <View style={{ marginTop: 25 }}>
-            <Text>Zobrať typy regulácií</Text>
+            <Text>Typy zavlažení na zobrazenie</Text>
             <View style={styles.checkboxContainer}>
               <CheckBox
                 title='Automatické'
